@@ -16,20 +16,22 @@ defmodule ConnectFour do
     id
   end
 
-  def join_game(id) do
-
-    # {:ok, json } = JSON.encode([name: @name, id: id])
-
+  def join_game(id, match: match) do
     url = "#{@url}games/#{id}/players"
 
+    %HTTPoison.Response{body: body} = HTTPoison.post!(url, 
+      {:form, [name: @name, id: id, match: match]},
+      %{"Content-type" => "application/x-www-form-urlencoded"})
+      {:ok, body} = JSON.decode body
 
-    body = HTTPoison.post!(url, {:form, [name: @name, id: id]}, %{"Content-type" => "application/x-www-form-urlencoded"})
+    %{"players" => players} = body
 
+    me = Enum.find(players, fn (%{"name" => name}) -> name == @name end)
+    me
   end
-
 
   def main do
    make_game!
-   |> join_game
+   |> join_game match: true
   end
 end
